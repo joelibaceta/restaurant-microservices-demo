@@ -1,4 +1,4 @@
-# 🧪 Microservicios de Restaurante con IAM y Service Discovery (Consul)
+# Microservicios de Restaurante con IAM y Service Discovery
 
 Este repositorio contiene un proyecto educativo para demostrar **una arquitectura moderna de microservicios**, integrando:
 
