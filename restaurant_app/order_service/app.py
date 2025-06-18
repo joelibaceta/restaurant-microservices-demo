@@ -15,7 +15,11 @@ def register_service():
     service_definition = {
         "Name": "order",
         "Address": "order",
-        "Port": 5000
+        "Port": 5000,
+        "Check": {
+            "HTTP": "http://order:5000/ping",
+            "Interval": "10s"
+        }
     }
     requests.put(f"{CONSUL_BASE_URL}/v1/agent/service/register", json=service_definition)
 
