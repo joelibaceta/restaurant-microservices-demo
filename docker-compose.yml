@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   gateway:
     build: ./gateway
@@ -14,13 +12,13 @@ services:
     environment:
       - CONSUL_HTTP_ADDR=http://consul:8500
   consul:
-    image: consul
+    image: consul:1.15.4
     ports:
       - "8500:8500"  # Interfaz web
     command: "agent -dev -client=0.0.0.0"
   order:
     build:
-      context: ./order_service
+      context: ./restaurant_app/order_service
       dockerfile: ../shared/Dockerfile
     expose:
       - "5000"
@@ -31,7 +29,7 @@ services:
 
   kitchen:
     build:
-      context: ./kitchen_service
+      context: ./restaurant_app/kitchen_service
       dockerfile: ../shared/Dockerfile
     expose:
       - "5001"
@@ -42,7 +40,7 @@ services:
 
   delivery:
     build:
-      context: ./delivery_service
+      context: ./restaurant_app/delivery_service
       dockerfile: ../shared/Dockerfile
     expose:
       - "5002"
