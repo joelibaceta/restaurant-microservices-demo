@@ -97,3 +97,15 @@ curl -X POST http://localhost:8080/login \
      -H "Content-Type: application/json" \
      -d '{"username": "joel", "password": "1234"}'
 ```
+Esto devolverá un token:
+```
+{"token": "joel:admin:..."}
+```
+
+### Paso 2: Obtener un token válido
+```
+curl -X POST http://localhost:8080/order/ \
+     -H "Authorization: Bearer TU_TOKEN_AQUI" \
+     -H "Content-Type: application/json" \
+     -d '{"cliente": "joel", "plato": "lomo saltado"}'
+```
