@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:80"  # solo este es accesible desde el host
+    depends_on:
+      - consul
+      - order
+      - kitchen
+      - delivery
+      - simple_iam
+    environment:
+      - CONSUL_HTTP_ADDR=http://consul:8500
+  consul:
+    image: consul
+    ports:
+      - "8500:8500"  # Interfaz web
+    command: "agent -dev -client=0.0.0.0"
+  order:
+    build:
+      context: ./order_service
+      dockerfile: ../shared/Dockerfile
+    expose:
+      - "5000"
+    depends_on:
+      - kitchen
+    environment:
+      CONSUL_HOST: http://consul:8500
+
+  kitchen:
+    build:
+      context: ./kitchen_service
+      dockerfile: ../shared/Dockerfile
+    expose:
+      - "5001"
+    depends_on:
+      - delivery
+    environment:
+      CONSUL_HOST: http://consul:8500
+
+  delivery:
+    build:
+      context: ./delivery_service
+      dockerfile: ../shared/Dockerfile
+    expose:
+      - "5002"
+    environment:
+      CONSUL_HOST: http://consul:8500
+
+  simple_iam:
+    build:
+      context: ./simple_iam
+    expose:
+      - "5003"
+    env_file:
+      - ./simple_iam/secrets.env
+    environment:
+      CONSUL_HOST: http://consul:8500

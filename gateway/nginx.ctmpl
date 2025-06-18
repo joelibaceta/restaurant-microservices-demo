@@ -1,0 +1,73 @@
+events {}
+
+http {
+  {{ with service "kitchen" }}
+  upstream kitchen {
+    {{ range . }}
+    server {{ .Address }}:{{ .Port }};
+    {{ end }}
+  }
+  {{ end }}
+
+  {{ with service "order" }}
+  upstream order {
+    {{ range . }}
+    server {{ .Address }}:{{ .Port }};
+    {{ end }}
+  }
+  {{ end }}
+
+  {{ with service "delivery" }}
+  upstream delivery {
+    {{ range . }}
+    server {{ .Address }}:{{ .Port }};
+    {{ end }}
+  }
+  {{ end }}
+
+  server {
+    listen 80;
+
+    location /auth {
+        internal;
+        proxy_pass http://simple_iam/validate;
+        proxy_pass_request_body off;
+        proxy_set_header Content-Length "";
+        proxy_set_header Authorization $http_authorization;
+    }
+
+    error_page 401 403 = @unauthorized;
+
+    location @unauthorized {
+    default_type text/html;
+        return 401 '<html><body><h1>401 - No autorizado</h1><p>El token no es válido o no está presente.</p></body></html>';
+    }
+
+    location /order/ {
+        auth_request /auth;
+        auth_request_set $user_id $upstream_http_x_user_id;
+        auth_request_set $role $upstream_http_x_role;
+        proxy_set_header X-User-ID $user_id;
+        proxy_set_header X-Role $role;
+        proxy_pass http://order;
+    }
+
+    location /kitchen/ {
+        auth_request /auth;
+        auth_request_set $user_id $upstream_http_x_user_id;
+        auth_request_set $role $upstream_http_x_role;
+        proxy_set_header X-User-ID $user_id;
+        proxy_set_header X-Role $role;
+        proxy_pass http://kitchen;
+    }
+
+    location /delivery/ {
+        auth_request /auth;
+        auth_request_set $user_id $upstream_http_x_user_id;
+        auth_request_set $role $upstream_http_x_role;
+        proxy_set_header X-User-ID $user_id;
+        proxy_set_header X-Role $role;
+        proxy_pass http://delivery;
+    }
+  }
+}
