@@ -16,6 +16,31 @@ services:
     ports:
       - "8500:8500"  # Interfaz web
     command: "agent -dev -client=0.0.0.0"
+  loki:
+    image: grafana/loki:2.9.0
+    ports:
+      - "3100:3100"  # Puerto para Loki
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki/local-config.yaml:/etc/loki/local-config.yaml
+  promtail:
+    image: grafana/promtail:2.9.0
+    volumes:
+      - ./promtail/config.yaml:/etc/promtail/config.yaml
+      - /var/log:/var/log  # Montar el directorio de logs del host
+    command: -config.file=/etc/promtail/config.yaml
+    depends_on:
+      - loki
+  grafana:
+    image: grafana/grafana:10.2.0
+    ports:
+      - "3000:3000"  # Puerto para Grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin  # Cambia la contraseña del administrador
+    volumes:
+      - grafana-storage:/var/lib/grafana  # Persistencia de datos de Grafana
+    depends_on:
+      - loki
   order:
     build:
       context: ./restaurant_app/order_service
@@ -56,3 +81,6 @@ services:
       - ./simple_iam/secrets.env
     environment:
       CONSUL_HOST: http://consul:8500
+volumes:
+  grafana-storage:
+    driver: local  # Volumen para persistencia de datos de Grafana

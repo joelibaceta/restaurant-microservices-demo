@@ -1,6 +1,33 @@
 from flask import Flask, request
 import requests
 import os
+import json
+import logging
+
+## Logging Configuration
+
+class JSONFormatter(logging.Formatter):
+    """
+    Custom logging formatter to output logs in JSON format.
+    """
+    def format(self, record):
+        log_obj = {
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "timestamp": self.formatTime(record),
+            "name": record.name,
+            "module": record.module,
+            "lineno": record.lineno
+        }
+        return json.dumps(log_obj)
+    
+handler = logging.StreamHandler()
+handler.setFormatter(JSONFormatter())
+
+logger = logging.getLogger("order_service")
+logger.setLevel(logging.INFO)
+logger.addHandler(handler)
+
 
 # Service Discovery with Consul
 # ==========================================================
@@ -51,6 +78,7 @@ def ping():
     """
     Health check endpoint.
     """
+    logger.info("Ping received", extra={"ip": request.remote_addr})
     return {"message": "Order service is running"}, 200
 
 @app.route("/order", methods=["POST"])
