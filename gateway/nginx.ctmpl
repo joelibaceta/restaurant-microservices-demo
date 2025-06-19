@@ -25,6 +25,10 @@ http {
   }
   {{ end }}
 
+  upstream simple_iam {
+    server 172.0.0.1:5003;
+  }
+
   server {
     listen 80;
 
