@@ -25,9 +25,13 @@ http {
   }
   {{ end }}
 
-  upstream simple_iam {
-    server 172.0.0.1:5003;
-  }
+  {{ with service "simple_iam" }}
+    upstream simple_iam {
+      {{ range . }}
+      server {{ .Address }}:{{ .Port }};
+      {{ end }}
+    }
+  {{ end }}
 
   server {
     listen 80;
@@ -40,12 +44,7 @@ http {
         proxy_set_header Authorization $http_authorization;
     }
 
-    error_page 401 403 = @unauthorized;
 
-    location @unauthorized {
-    default_type text/html;
-        return 401 '<html><body><h1>401 - No autorizado</h1><p>El token no es válido o no está presente.</p></body></html>';
-    }
 
     location /order/ {
         auth_request /auth;
@@ -72,6 +71,13 @@ http {
         proxy_set_header X-User-ID $user_id;
         proxy_set_header X-Role $role;
         proxy_pass http://delivery;
+    }
+
+    error_page 401 403 = @unauthorized;
+
+    location @unauthorized {
+    default_type text/html;
+        return 401 '<html><body><h1>401 - No autorizado</h1><p>El token no es válido o no está presente.</p></body></html>';
     }
   }
 }
